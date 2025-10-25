@@ -63,32 +63,39 @@ def run_repl() -> None:
                 print("Goodbye!")
                 break
 
-            match raw:
-                case "help":
-                    print(help_text)
-                case "history":
-                    print(calc.list_history())
-                case "clear":
-                    calc.history.clear()
-                    print("History cleared.")
-                case "undo":
-                    print(calc.undo())
-                case "redo":
-                    print(calc.redo())
-                case "save":
-                    calc.save()
-                    print("Saved.")
-                case "load":
-                    calc.load()
-                    print("Loaded.")
-                case op if op in OPERATIONS:
-                    a = ensure_number(input("a = "))
-                    b = ensure_number(input("b = "))
-                    if op in {"divide", "modulus", "int_divide", "percent"}:
-                        ensure_nonzero(b)
-                    print(calc.compute(op, a, b))
-                case _:
-                    print("Unknown command. Type 'help'.")
+            elif raw == "help":
+                print(help_text)
+
+            elif raw == "history":
+                print(calc.list_history())
+
+            elif raw == "clear":
+                calc.history.clear()
+                print("History cleared.")
+
+            elif raw == "undo":
+                print(calc.undo())
+
+            elif raw == "redo":
+                print(calc.redo())
+
+            elif raw == "save":
+                calc.save()
+                print("Saved.")
+
+            elif raw == "load":
+                calc.load()
+                print("Loaded.")
+
+            elif raw in OPERATIONS:
+                a = ensure_number(input("a = "))
+                b = ensure_number(input("b = "))
+                if raw in {"divide", "modulus", "int_divide", "percent"}:
+                    ensure_nonzero(b)
+                print(calc.compute(raw, a, b))
+
+            else:
+                print("Unknown command. Type 'help'.")
 
         except CalculatorError as e:
             log.error(str(e))
@@ -96,6 +103,7 @@ def run_repl() -> None:
         except KeyboardInterrupt:
             print("\nGoodbye!")
             break
+
 
 if __name__ == "__main__":
     run_repl()
