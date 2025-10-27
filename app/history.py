@@ -52,7 +52,7 @@ class History:
 
     def undo(self) -> str:
         if self._df.empty:
-            return "Nothing to undo"
+            return "Nothing requested to undo"
         last = self._df.iloc[-1]
         self._redo_stack.append((last["operation"], last["a"], last["b"], last["result"]))
         self._df = self._df.iloc[:-1].reset_index(drop=True)
@@ -60,10 +60,27 @@ class History:
 
     def redo(self) -> str:
         if not self._redo_stack:
-            return "Nothing to redo"
+            return "Nothing requested to redo"
         op, a, b, r = self._redo_stack.pop()
         self._df = pd.concat(
             [self._df, pd.DataFrame([{"operation": op, "a": a, "b": b, "result": r}])],
             ignore_index=True,
         )
         return "Redo successful"
+
+    def last(self) -> Optional[Calculation]:
+        """Return the last calculation in history if it exists."""
+        if self._df.empty:
+            return None
+
+        last_row = self._df.iloc[-1]
+        return Calculation(
+            last_row["operation"],
+            float(last_row["a"]),
+            float(last_row["b"]),
+            float(last_row["result"])
+        )
+
+    def to_dataframe(self) -> pd.DataFrame:
+        """Return a copy of the current history as a pandas DataFrame."""
+        return self._df.copy()

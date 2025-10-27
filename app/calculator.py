@@ -6,11 +6,24 @@ from app.input_validators import ensure_number, ensure_nonzero
 from app.exceptions import CalculatorError
 from app.logger import log
 from app.calculator_config import PROMPT
+from app.logging_observer import LoggingObserver
+from app.autosave_observer import AutoSaveObserver
 
 
 class Calculator:
     def __init__(self, history: Optional[History] = None):
         self.history = history or History()
+        self.observers = []
+        # Register built-in observers
+        self.register_observer(LoggingObserver())
+        self.register_observer(AutoSaveObserver(self.history))
+
+    def register_observer(self, observer):
+        self.observers.append(observer)
+
+    def notify_observers(self, calculation: Calculation):
+        for observer in self.observers:
+            observer.update(calculation)
 
     def compute(self, op: str, a: float, b: float) -> float:
         if op not in OPERATIONS:
@@ -20,7 +33,12 @@ class Calculator:
             ensure_nonzero(b)
 
         result = OPERATIONS[op](a, b)
-        self.history.add(Calculation(op, a, b, result))
+        calc_obj = Calculation(op, a, b, result)
+        self.history.add(calc_obj)
+
+        # NEW: notify all observers about the new calculation
+        self.notify_observers(calc_obj)
+
         return result
 
     def undo(self) -> str:
